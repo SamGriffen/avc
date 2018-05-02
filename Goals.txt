@@ -1,2 +1,31 @@
 Up to date file of team goals
-mark off each one as completed
+
+Week 1:
+Mike:  achieved: 
+Sam:  achieved: 
+Thomas:  achieved: 
+Dom:  achieved: 
+
+Week 2:  achieved: 
+Mike:  achieved: 
+Sam:  achieved: 
+Thomas:  achieved: 
+Dom:  achieved: 
+
+Week 3:  achieved: 
+Mike:  achieved: 
+Sam:  achieved: 
+Thomas:  achieved: 
+Dom:  achieved: 
+
+Week 4:  achieved: 
+Mike:  achieved: 
+Sam:  achieved: 
+Thomas:  achieved: 
+Dom:  achieved: 
+
+Week 5:
+Mike:  achieved: 
+Sam:  achieved: 
+Thomas:  achieved: 
+Dom:  achieved: 
