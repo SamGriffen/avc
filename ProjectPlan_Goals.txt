@@ -5,7 +5,7 @@ Thomas:  achieved:  help?:
 Dom:  achieved:  help?: 
 Are all relevant code, bot photos and design files on the team Github?
 Have you noted which members attended labs and team meetings?
-Are there any tasks that need to be done for progress tp be made that have NOT been assigned to a team member?
+Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member?
 
 
 Week 2 
@@ -15,7 +15,7 @@ Thomas:  achieved:  help?:
 Dom:  achieved:  help?: 
 Are all relevant code, bot photos and design files on the team Github?
 Have you noted which members attended labs and team meetings?
-Are there any tasks that need to be done for progress tp be made that have NOT been assigned to a team member?
+Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member?
 
 
 Week 3 
@@ -25,7 +25,7 @@ Thomas:  achieved:  help?:
 Dom:  achieved:  help?: 
 Are all relevant code, bot photos and design files on the team Github?
 Have you noted which members attended labs and team meetings?
-Are there any tasks that need to be done for progress tp be made that have NOT been assigned to a team member?
+Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member?
 
 
 Week 4 
@@ -35,7 +35,7 @@ Thomas:  achieved:  help?:
 Dom:  achieved:  help?: 
 Are all relevant code, bot photos and design files on the team Github?
 Have you noted which members attended labs and team meetings?
-Are there any tasks that need to be done for progress tp be made that have NOT been assigned to a team member?
+Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member?
 
 
 Week 5
@@ -45,4 +45,4 @@ Thomas:  achieved:  help?:
 Dom:  achieved:  help?: 
 Are all relevant code, bot photos and design files on the team Github?
 Have you noted which members attended labs and team meetings?
-Are there any tasks that need to be done for progress tp be made that have NOT been assigned to a team member?
+Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member?
