@@ -1,28 +1,28 @@
 Week 1
-Mike:  achieved:  help?:  
-Sam:  achieved:  help?: 
-Thomas:  achieved:  help?: 
-Dom:  achieved:  help?: 
+Mike: Develop software to get the robot moving in a line. Weekly Report  achieved:  help?:  
+Sam: Get the chassis made (Prototyped)  achieved:  help?: 
+Thomas: Develop software to get the robot moving in a line  achieved:  help?: 
+Dom: Get the chassis made (Prototyped)  achieved:  help?: 
 Are all relevant code, bot photos and design files on the team Github?
 Have you noted which members attended labs and team meetings?
 Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member?
 
 
 Week 2 
-Mike:  achieved:  help?: 
-Sam:  achieved:  help?: 
-Thomas:  achieved:  help?: 
-Dom:  achieved:  help?: 
+Mike: Weekly Report, bash script and makefile, help with robot movement code  achieved:  help?: 
+Sam: Finishing chassis and drivetrain  achieved:  help?: 
+Thomas: Have robot moving and start work on image processing  achieved:  help?: 
+Dom: Finishing sensor and camera mount  achieved:  help?: 
 Are all relevant code, bot photos and design files on the team Github?
 Have you noted which members attended labs and team meetings?
 Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member?
 
 
 Week 3 
-Mike:  achieved:  help?: 
-Sam:  achieved:  help?: 
-Thomas:  achieved:  help?: 
-Dom:  achieved:  help?: 
+Mike: Weekly Report, finishing up quadrant 2 code, working on quadrant 3 code  achieved:  help?: 
+Sam: Adjusting any hardware that needs work, starting on quadrant 4 code (Given that Q2 is done, and Q3 is on the way)  achieved:  help?: 
+Thomas: With Mike, finishing up quadrant 2 code and starting Q3 code  achieved:  help?: 
+Dom: Adjusting any hardware that needs work, starting on quadrant 4 code (Given that Q2 is done, and Q3 is on the way)  achieved:  help?: 
 Are all relevant code, bot photos and design files on the team Github?
 Have you noted which members attended labs and team meetings?
 Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member?
