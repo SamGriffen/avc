@@ -68,22 +68,24 @@ int findCurveError(){
 int followLine(int error){
 	
 	//create variables for PID control
-	unsigned char v_go = 128;
-	int kp = 0.005;
-	int kd = 0.01;
+	unsigned char v_go = 40;
+	double kp = 0.0025;
+	double kd = 0.00;
 	
 	int prevError = error; //store previous error
 	error = findCurveError();//find new error
 	
 	unsigned char errorDifference = error - prevError;
 	
-	unsigned char dv = error * kp + errorDifference * kd; //
+	int dv = (double)error * kp + (double)errorDifference * kd; //
+	
+	printf("dv: %d\n", dv);
 	
 	int v_left = v_go + dv;
 	int v_right = v_go - dv;
 	
-	set_motor(0, v_left);
-	set_motor(1, v_right);
+	set_motor(1, v_left);
+	set_motor(2, v_right);
 	
 	printf("%d", error);
 	
