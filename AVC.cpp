@@ -2,37 +2,10 @@
 #include <time.h>
 #include "E101.h"
 
-int followLine();
-int followMaze();
-int findCurveError();
-
-int redCount = 0; //
+int stage = 0; //what stage the bot is in
 int wallClose = 200; //200 is test value change later. constant for what a close wall reads
 
-int main(){
-	init();
-	
-	while(redCount == 0){
-		followLine();
-	}
-	while(redCount == 1 || redCount == 2){
-		followMaze();
-	}
-	
-	set_motor(1,0);
-	set_motor(2,0);
-	return 0;
-}
-
-int followLine(){
-	
-	int error = findCurveError();
-	
-	printf("%d", error);
-	
-	return 0;
-}
-
+//find direction error when following line
 int findCurveError(){
 	
 	//stores how far to the left or right the line is
@@ -91,9 +64,75 @@ int findCurveError(){
 	return error;
 }
 
+//following line
+int followLine(int error){
+	
+	//create variables for PID control
+	unsigned char v_go = 128;
+	int kp = 0.005;
+	int kd = 0.01;
+	
+	int prevError = error; //store previous error
+	error = findCurveError();//find new error
+	
+	unsigned char errorDifference = error - prevError;
+	
+	unsigned char dv = error * kp + errorDifference * kd; //
+	
+	int v_left = v_go + dv;
+	int v_right = v_go - dv;
+	
+	set_motor(0, v_left);
+	set_motor(1, v_right);
+	
+	printf("%d", error);
+	
+	return error;
+}
+
 int followMaze(){
 	
-	redCount ++; //test to move on
+	stage ++; //test to move on
 	
+	return 0;
+}
+
+int main(){
+	init();	
+	//set up network variables controlling message sent/received and if connected or not
+	//char message[24];
+	//int port = 0;
+	//char serverAddress[15] = {};
+	//unsigned char successful = 1;
+	
+	//while not connected, try to connect
+	//while(successful != 0){
+		//successful = connect_to_server(serverAddress, port);
+	//}
+	//successful = 1;
+	
+	//try to reciebve message until successfully recieved
+	//while(successful != 0){
+		//receive_from_server(message);
+	//}
+	//successful = 1;
+	
+	//try to send to server until successfully sent
+	//while(successful != 0){
+		//send_to_server(message);
+	//}
+	
+	//bot runs stage until end of stage, then moves to next stage
+	int error = 0;
+	while(stage == 0){
+		error = followLine(error);		
+		
+	}
+	while(stage == 1 || stage == 2){
+		followMaze();
+	}
+	
+	set_motor(1,0);
+	set_motor(2,0);
 	return 0;
 }
