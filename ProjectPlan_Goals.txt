@@ -1,11 +1,11 @@
 Week 1
-Mike: Develop software to get the robot moving in a line. Weekly Report  achieved:  help?:  
-Sam: Get the chassis made (Prototyped)  achieved:  help?: 
-Thomas: Develop software to get the robot moving in a line  achieved:  help?: 
-Dom: Get the chassis made (Prototyped)  achieved:  help?: 
-Are all relevant code, bot photos and design files on the team Github?
-Have you noted which members attended labs and team meetings?
-Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member?
+Mike: Develop software to get the robot moving in a line. Weekly Report  achieved: yes help?: no 
+Sam: Get the chassis made (Prototyped)  achieved: prototype printed help?: no
+Thomas: Develop software to get the robot moving in a line  achieved: yes help?: no
+Dom: Get the chassis made (Prototyped)  achieved: prototype printed help?: no
+Are all relevant code, bot photos and design files on the team Github? yep
+Have you noted which members attended labs and team meetings? all 4 members were at lab, mike, sam, and thomas were at team metting
+Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member? networking code for gate
 
 
 Week 2 
