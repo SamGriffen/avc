@@ -71,11 +71,14 @@ int followLine(int error){
 	unsigned char v_go = 40;
 	double kp = 0.0025;
 	double kd = 0.00;
+	//double black;
 	
 	int prevError = error; //store previous error
 	error = findCurveError();//find new error
 	
-	unsigned char errorDifference = error - prevError;
+	//if(error < black){printf("");}
+	
+	int errorDifference = error - prevError;
 	
 	int dv = (double)error * kp + (double)errorDifference * kd; //
 	
@@ -101,28 +104,40 @@ int followMaze(){
 
 int main(){
 	init();	
+	
 	//set up network variables controlling message sent/received and if connected or not
-	//char message[24];
-	//int port = 0;
-	//char serverAddress[15] = {};
-	//unsigned char successful = 1;
+	char message[24] = "Please";
+	int port = 1024;
+	char serverAddress[15] = {"130.195.6.196"};
+	unsigned char successful = 1;
 	
 	//while not connected, try to connect
-	//while(successful != 0){
-		//successful = connect_to_server(serverAddress, port);
-	//}
-	//successful = 1;
-	
-	//try to reciebve message until successfully recieved
-	//while(successful != 0){
-		//receive_from_server(message);
-	//}
-	//successful = 1;
+	while(successful != 0){
+		successful = connect_to_server(serverAddress, port);
+	}
+	successful = 1;
 	
 	//try to send to server until successfully sent
-	//while(successful != 0){
-		//send_to_server(message);
-	//}
+	while(successful != 0){
+		printf("\n before send: " + message[24]);
+		successful = send_to_server(message);
+		printf("\n after send: " + message[24]);
+	}
+	
+	//try to reciebve message until successfully recieved
+	while(successful != 0){
+		printf("\n before recienve: " + message[24]);
+		successful = receive_from_server(message);
+		printf("\n after recieve: " + message[24]);
+	}
+	successful = 1;
+	
+	//try to send to server until successfully sent
+	while(successful != 0){
+		printf("\n before send2: " + message[24]);
+		successful = send_to_server(message);
+		printf("\n after send2: " + message[24]);
+	}
 	
 	//bot runs stage until end of stage, then moves to next stage
 	int error = 0;
