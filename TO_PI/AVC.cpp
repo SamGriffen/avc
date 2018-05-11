@@ -5,13 +5,18 @@
 // Declare our functions
 int findCurveError();
 int followLine(int error);
-int followMaze()
+int followMaze();
 
 int stage = 0; //what stage the bot is in
 int wallClose = 127; //200 is test value change later. constant for what a close wall reads
 
 // Flag representing whether to log to file or not
 bool dev = true;
+
+// Declare pins for IR sensors
+int left_ir = 0;
+int mid_ir = 1;
+int right_ir = 3;
 
 // Stores the file
 FILE *file;
@@ -123,9 +128,9 @@ int findCurveError(){
 int followLine(int error){
 
 	//create variables for PID control
-	unsigned char v_go = 50;
-	double kp = 0.0035;
-	double kd = 0.005;
+	unsigned char v_go = 55;
+	double kp = 0.008;
+	double kd = 0.00;
 
 	int prevError = error; //store previous error
 	error = findCurveError();//find new error1
@@ -141,7 +146,7 @@ int followLine(int error){
 	set_motor(2, v_right);
 
 	if(dev){
-		fprintf(file, "Kp: %f Kd: %f dv: %d v_left: %d v_right: %d\n", kp,kd,dv,v_left,v_right);
+		fprintf(file, "Kp: %f Kd: %f dv: %d v_left: %d v_right: %d error: %d\n", kp,kd,dv,v_left,v_right, error);
 	}
 
 	return error;
@@ -150,6 +155,9 @@ int followLine(int error){
 int followMaze(){
 
 	// Read the right sensor
+	// int right_sensor = read_analog();
+
+	// Calculate the IR error
 
 	stage ++; //test to move on
 
