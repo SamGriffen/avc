@@ -19,9 +19,9 @@ int right_ir = 3;
 
 // Varialbes for PID control
 unsigned char v_go = 40;
-double kp = 0.35;
-double kd = 0.8;
-double ki = 0.00;
+double kp = 0.25;
+double kd = 0.45;
+double ki = 0.0001;
 
 int total_error = 0;
 
@@ -45,8 +45,8 @@ int main(){
 
 	openGate();
 
-	sleep1(5,0);
-/*
+	// sleep1(5,0);
+
 	// Open a file for logging
 	file = fopen("log.txt", "w");
 
@@ -103,7 +103,6 @@ int main(){
 	}catch(long){
 		set_motor(1,0);
 		set_motor(2,0);}
-		*/
 	return 0;
 }
 
