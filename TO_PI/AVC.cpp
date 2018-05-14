@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <time.h>
+#include <sys/time.h>
 #include "E101.h"
 
 int stage = 0; //what stage the bot is in
@@ -17,6 +17,17 @@ int left_ir = 0;
 int mid_ir = 1;
 int right_ir = 3;
 
+// Varialbes for PID control
+unsigned char v_go = 40;
+double kp = 0.2;
+double kd = 0.00;
+
+// Stores the last time
+struct timeval last_time;
+
+// Stores current time
+struct timeval current_time;
+
 // Stores the file
 FILE *file;
 
@@ -29,13 +40,19 @@ void openGate();
 int main(){
 	init();
 
+	// openGate();
+
 	// Open a file for logging
 	file = fopen("log.txt", "w");
 
 	try{
+		// openGate();
+
 		//values for what constitues an entiraly white or black line
 		int allWhite = 120;
 		int allBlack = 90;
+
+		int v_go = 40;
 
 		//run line
 		int scan_row = 120;
@@ -51,8 +68,8 @@ int main(){
 
 			//if all pixels black, back up the vehicle
 			if(max < allBlack){
-				set_motor(1, 0);
-				set_motor(2, 0);
+				set_motor(1, -1 * v_go);
+				set_motor(2, -1 * v_go);
 
 			//if all pixels are white, move onto the next stage
 			}else if(min > allWhite){
@@ -85,11 +102,10 @@ int main(){
 }
 
 void openGate(){
-	/*
 	//set up network variables controlling message sent/received and if connected or not
 	char message[24] = "Please";
 	int port = 1024;
-	char serverAddress[15] = {"130.195.6.196"};
+	char serverAddress[15] = "130.195.6.196";
 	unsigned char successful = 1;
 
 	//while not connected, try to connect
@@ -100,26 +116,23 @@ void openGate(){
 
 	//try to send to server until successfully sent
 	while(successful != 0){
-		printf("\n before send: " + message[24]);
 		successful = send_to_server(message);
-		printf("\n after send: " + message[24]);
 	}
 
 	//try to reciebve message until successfully recieved
 	while(successful != 0){
-		printf("\n before recienve: " + message[24]);
+		printf(message);
 		successful = receive_from_server(message);
-		printf("\n after recieve: " + message[24]);
+		printf(message);
 	}
 	successful = 1;
 
 	//try to send to server until successfully sent
 	while(successful != 0){
-		printf("\n before send2: " + message[24]);
+		printf(message);
 		successful = send_to_server(message);
-		printf("\n after send2: " + message[24]);
+		printf(message);
 	}
-	*/
 }
 
 //with a given row to scan, find the min and max whiteness valuess
@@ -130,12 +143,12 @@ int findMinMax(int scan_row){
 		int pix = get_pixel(scan_row,i,3);
         //set max if larger
         if( pix > max){
-			max = pix;
-		}
-		//set min if smaller
-		if(pix < min){
-			min =pix;
-		}
+					max = pix;
+				}
+				//set min if smaller
+				if(pix < min){
+					min =pix;
+				}
     }
 
     //set threshold of what consitutes a white pixel by average of max and min
@@ -156,7 +169,7 @@ int findCurveError(int scan_row, int threshold){
     for(int i = 0; i <320;i++){
 		int pix = get_pixel(scan_row,i,3);
 		if( pix > threshold){ //pixel is 'white'. add to number of white pixels and whiteness is 100
-			white = 100;
+			white = 1;
 			numberWhites += 1;
 
 		}else{ //pixel is 'black'. don't add to number of white pixels. whiteness is 0
@@ -177,17 +190,16 @@ int findCurveError(int scan_row, int threshold){
 
 //following line
 int followLine(int error, int scan_row, int threshold){
-
-	//create variables for PID control
-	unsigned char v_go = 40;
-	double kp = 0.0015;
-	double kd = 0.00;
 	//double black;
 
 	int prevError = error; //store previous error
 	error = findCurveError(scan_row, threshold);//find new error
 
-	int errorDifference = error - prevError;
+	gettimeofday(&current_time, 0);
+
+	int errorDifference = (error - prevError)/( (current_time.tv_sec - last_time.tv_sec)*1000000+(current_time.tv_usec-last_time.tv_usec));
+
+	last_time = current_time;
 
 	int dv = (double)error * kp + (double)errorDifference * kd; //
 
