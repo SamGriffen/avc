@@ -19,8 +19,11 @@ int right_ir = 3;
 
 // Varialbes for PID control
 unsigned char v_go = 40;
-double kp = 0.2;
-double kd = 0.00;
+double kp = 0.35;
+double kd = 0.8;
+double ki = 0.00;
+
+int total_error = 0;
 
 // Stores the last time
 struct timeval last_time;
@@ -40,8 +43,10 @@ void openGate();
 int main(){
 	init();
 
-	// openGate();
+	openGate();
 
+	sleep1(5,0);
+/*
 	// Open a file for logging
 	file = fopen("log.txt", "w");
 
@@ -98,61 +103,44 @@ int main(){
 	}catch(long){
 		set_motor(1,0);
 		set_motor(2,0);}
+		*/
 	return 0;
 }
 
 void openGate(){
 	//set up network variables controlling message sent/received and if connected or not
-	char message[24] = "Please";
+	char message[24] = {"Please"};
+	char password[24] = {};
 	int port = 1024;
 	char serverAddress[15] = "130.195.6.196";
-	unsigned char successful = 1;
 
-	//while not connected, try to connect
-	while(successful != 0){
-		successful = connect_to_server(serverAddress, port);
-	}
-	successful = 1;
+	connect_to_server(serverAddress, port);
 
-	//try to send to server until successfully sent
-	while(successful != 0){
-		successful = send_to_server(message);
-	}
+	send_to_server(message);
 
-	//try to reciebve message until successfully recieved
-	while(successful != 0){
-		printf(message);
-		successful = receive_from_server(message);
-		printf(message);
-	}
-	successful = 1;
+	receive_from_server(password);
 
-	//try to send to server until successfully sent
-	while(successful != 0){
-		printf(message);
-		successful = send_to_server(message);
-		printf(message);
-	}
+	send_to_server(password);
 }
 
 //with a given row to scan, find the min and max whiteness valuess
 int findMinMax(int scan_row){
 	take_picture();
 
-   	for(int i = 0; i <320;i++){
-		int pix = get_pixel(scan_row,i,3);
-        //set max if larger
-        if( pix > max){
-					max = pix;
-				}
-				//set min if smaller
-				if(pix < min){
-					min =pix;
-				}
-    }
+ 	for(int i = 0; i <320;i++){
+	int pix = get_pixel(scan_row,i,3);
+      //set max if larger
+      if( pix > max){
+				max = pix;
+			}
+			//set min if smaller
+			if(pix < min){
+				min =pix;
+			}
+  }
 
-    //set threshold of what consitutes a white pixel by average of max and min
-    int threshold = (max+min)/2;
+  //set threshold of what consitutes a white pixel by average of max and min
+  int threshold = (max+min)/2;
 
 	return threshold;
 }
@@ -195,13 +183,15 @@ int followLine(int error, int scan_row, int threshold){
 	int prevError = error; //store previous error
 	error = findCurveError(scan_row, threshold);//find new error
 
+	total_error += error;
+
 	gettimeofday(&current_time, 0);
 
 	int errorDifference = (error - prevError)/( (current_time.tv_sec - last_time.tv_sec)*1000000+(current_time.tv_usec-last_time.tv_usec));
 
 	last_time = current_time;
 
-	int dv = (double)error * kp + (double)errorDifference * kd; //
+	int dv = (double)error * kp + (double)errorDifference * kd + (double)total_error * ki; //
 
 	int v_left = v_go + dv;
 	int v_right = v_go - dv;
