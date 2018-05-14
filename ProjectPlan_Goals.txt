@@ -9,13 +9,13 @@ Are there any tasks that need to be done for progress to be made that have NOT b
 
 
 Week 2 
-Mike: Weekly Report, bash script and makefile, help with robot movement code  achieved:  help?: 
-Sam: Finishing chassis and drivetrain  achieved:  help?: 
-Thomas: Have robot moving and start work on image processing  achieved:  help?: 
-Dom: Finishing sensor and camera mount  achieved:  help?: 
-Are all relevant code, bot photos and design files on the team Github?
+Mike: Weekly Report, bash script and makefile, help with robot movement code  achieved: yes help?: sam halped with bash file
+Sam: Finishing chassis and drivetrain  achieved: yes help?: no
+Thomas: Have robot moving and start work on image processing  achieved: yep help?: no
+Dom: Finishing sensor and camera mount  achieved: yes help?: no
+Are all relevant code, bot photos and design files on the team Github? yes
 Have you noted which members attended labs and team meetings?
-Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member?
+Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member? nope
 
 
 Week 3 
