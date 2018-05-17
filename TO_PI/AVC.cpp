@@ -17,7 +17,7 @@ int left_ir = 0;
 int mid_ir = 1;
 int right_ir = 3;
 
-// Varialbes for PID control
+// Varialbes for PID control - for line following
 unsigned char v_go = 40;
 double kp = 0.25;
 double kd = 0.45;
@@ -31,6 +31,13 @@ struct timeval last_time;
 // Stores current time
 struct timeval current_time;
 
+
+// Variables for maze PID
+double maze_kp = 0.05;
+double maze_kd = 0.0;
+double maze_ki = 0.0;
+
+
 // Stores the file
 FILE *file;
 
@@ -38,10 +45,17 @@ int findMinMax(int scan_row);
 int findCurveError(int scan_row, int threshold);
 int followLine(int error, int scan_row, int threshold);
 int followMaze();
+int wallMazeOffset(int right, int left);
+void wallMazeStraight(int right, int left);
+void wallMazeHandler();
 void openGate();
 
 int main(){
 	init();
+
+	while(true){
+		wallMazeHandler();
+	}
 
 	openGate();
 
@@ -202,10 +216,21 @@ int followLine(int error, int scan_row, int threshold){
 }
 
 
+
+
 //following maze
-int followMaze(){
+void wallMazeHandler(){
+	int left = read_analog(left_ir);
+	int right = read_analog(right_ir);
+	wallMazeStraight(right,left);
+}
+void wallMazeStraight (int right, int left){
+	int dv = wallMazeOffset(right, left);
+	set_motor(1,v_go+dv);
+	set_motor(2,v_go-dv);
+}
 
-	stage ++; //test to move on
-
-	return 0;
+int wallMazeOffset(int right, int left){
+	int error = (left-right);
+	return ((error*maze_kp)+(error*maze_ki)*(error*maze_kd));
 }
