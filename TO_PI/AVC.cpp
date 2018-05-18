@@ -148,8 +148,10 @@ void curveyLineHandler(int scan_row){
 }
 
 void tapeMazeHandler(int scan_row){
+	take_picture();
+
 	int threshold = 120;
-	
+
 	int numberWhites = scanRow(scan_row, threshold);
 
 
