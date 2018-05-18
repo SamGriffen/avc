@@ -28,7 +28,7 @@ bool dev = true;
 // Declare pins for IR sensors
 int left_ir = 0;
 int mid_ir = 1;
-int right_ir = 3;
+int right_ir = 2;
 
 // Varialbes for PID control
 unsigned char v_go = 40;
@@ -381,9 +381,25 @@ void followLine(int error){
 }
 
 //following maze
-int followMaze(){
+void wallMazeHandler(){
+	int left = read_anal og(left_ir);
+	int right = read_analog(right_ir);
+	wallMazeStraight(right,left);
+}
 
-	stage ++; //test to move on
+void wallMazeStraight (int right, int left){
+	int dv = wallMazeOffset(right, left);
+	if(dev){
+		//fprintf(file, "v_go: %d  dv: %d\n", v_go, dv);
+	}
+	set_motor(1,v_go+dv);
+	set_motor(2,v_go-dv);
+}
 
-	return 0;
+int wallMazeOffset(int right, int left){
+	int error = (left-right);
+	return ((error*maze_kp)+(error*maze_ki)*(error*maze_kd));
+	if(dev){
+
+	}
 }
