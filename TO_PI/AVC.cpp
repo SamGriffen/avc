@@ -23,7 +23,10 @@ int whiteArray[320];
 int allWhiteCount = 200;
 
 // Flag representing whether to log to file or not
-bool dev = true;
+bool dev = false;
+
+// Flag representing whether to log to a csv
+bool csv_dev = true;
 
 // Declare pins for IR sensors
 int left_ir = 0;
@@ -70,6 +73,11 @@ int main(){
 
 	// Open a file for logging
 	file = fopen("log.txt", "w");
+
+	// Open a csv for logging
+	csv_log = fopen("csv_log.csv", "w");
+
+	fprintf("Error, Time\n");
 
 	// Define the row to scan on
 	int scan_row = 120;
@@ -374,6 +382,11 @@ void followLine(int error){
 	if(dev){
 		fprintf(file, "P Action: %d  I Action: %d  D Action: %d\n", (int)((double)error * kp),(int)((double)total_error * ki),(int)((double)errorDifference * kd));
 		fprintf(file, "Left: %d Right: %d\n\n", v_left, v_right);
+	}
+	if(csv_dev){
+		// Get the current time
+		long csv_time = current_time.tv_sec * 1000000 + current_time.tv_usec;
+		fprintf(csv_log, "%d,%d\n", error, csv_time);
 	}
 
 	set_motor(1, v_left);
