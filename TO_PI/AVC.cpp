@@ -17,7 +17,10 @@ int whiteArray[320];
 int allWhiteCount = 200;
 
 // Flag representing whether to log to file or not
-bool dev = true;
+bool dev = false;
+
++// Flag representing whether to log to a csv
++bool csv_dev = true;
 
 // Declare pins for IR sensors
 int left_ir = 0;
@@ -58,6 +61,11 @@ int main(){
 
 	// Open a file for logging
 	file = fopen("log.txt", "w");
+
+	// Open a csv for logging
+	csv_log = fopen("csv_log.csv", "w");
+
+	fprintf("Error, Time\n");
 
 	// Define the row to scan on
 	int scan_row = 120;
@@ -274,6 +282,12 @@ void followLine(int error){
 		fprintf(file, "Left: %d Right: %d\n\n", v_left, v_right);
 	}
 
+	if(csv_dev){
+		// Get the current time
+		long csv_time = current_time.tv_sec * 1000000 + current_time.tv_usec;
+		fprintf(csv_log, "%d,%d\n", error, csv_time);
+	}
+
 	set_motor(1, v_left);
 	set_motor(2, v_right);
 
@@ -281,28 +295,27 @@ void followLine(int error){
 }
 
 
-/*
+
 //following maze
 void wallMazeHandler(){
-	int left = read_anal og(left_ir);
-	int right = read_analog(right_ir);
-	wallMazeStraight(right,left);
+ int left = read_anal og(left_ir);
+ int right = read_analog(right_ir);
+ wallMazeStraight(right,left);
 }
 
 void wallMazeStraight (int right, int left){
-	int dv = wallMazeOffset(right, left);
-	if(dev){
-		//fprintf(file, "v_go: %d  dv: %d\n", v_go, dv);
-	}
-	set_motor(1,v_go+dv);
-	set_motor(2,v_go-dv);
+ int dv = wallMazeOffset(right, left);
+ if(dev){
+	 //fprintf(file, "v_go: %d  dv: %d\n", v_go, dv);
+ }
+ set_motor(1,v_go+dv);
+ set_motor(2,v_go-dv);
 }
 
 int wallMazeOffset(int right, int left){
-	int error = (left-right);
-	return ((error*maze_kp)+(error*maze_ki)*(error*maze_kd));
-	if(dev){
+ int error = (left-right);
+ return ((error*maze_kp)+(error*maze_ki)*(error*maze_kd));
+ if(dev){
 
-	}
+ }
 }
-*/
