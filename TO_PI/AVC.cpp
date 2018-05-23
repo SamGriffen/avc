@@ -82,7 +82,7 @@ int main(){
 
 	// Open a file for logging
 	file = fopen("log.txt", "w");
-
+	
 	// Open a csv for logging
 	csv_log = fopen("csv_log.csv", "w");
 
@@ -357,8 +357,8 @@ int wallMazeOffset(int right, int left){
  return ((error*maze_kp)+(error*maze_ki)*(error*maze_kd));
 }
 
-// Method that takes a row to scan and returns if there is a correct amount of red pixels to class as red tape
-int scanRed(int scan_row){
+// Method that takes a row to scan and returns if there is a correct amount of red pixels to class as red tape. Requires that take_picture has been called;
+bool scanRed(int scan_row){
 	// Initialize the variable to store number of Reds in
 	int numberReds = 0;
 	//error value to ignore close values (to make sure that it is deffinitly red)
@@ -366,7 +366,7 @@ int scanRed(int scan_row){
 	//a threshold amount of red pixels it must pass to return true
 	int redThreshold = 50;
 	//go through all pixels. if below threshold its not a white pixel. if above then it is white
-	for(int i = scanLowerLimit; i <scanUpperLimit;i++){
+	for(int i = 100; i <220;i++){
 		int pixRed = get_pixel(scan_row,i,0);
 		int pixGreen = get_pixel(scan_row,i,1);
 		int pixBlue = get_pixel(scan_row,i,2);
@@ -376,7 +376,6 @@ int scanRed(int scan_row){
 			// Increment the number of red pixels
 			numberReds += 1;
 		}
-
 	}
 
 	return (numberReds>redThreshold);
