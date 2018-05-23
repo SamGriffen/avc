@@ -29,16 +29,19 @@ int mid_ir = 1;
 int right_ir = 2;
 
 // Varialbes for PID control
-unsigned char v_go = 40;
+unsigned char v_go = 45;
 // double kp = 0.25;
 double kp = 0.25;
 double kd = 0.45;
-double ki = 0.000;
+double ki = 0.0005;
 
 // For maze
 double maze_kp = 0.25;
 double maze_kd = 0.45;
 double maze_ki = 0.000;
+
+// Variable to store the minimum reading for a wall being "close"
+int ir_close_reading = 130;
 
 // Stores total error
 int total_error = 0;
@@ -95,6 +98,7 @@ int main(){
 			curveyLineHandler(scan_row);
 		}
 
+		stage = 2;
 
 		//run line maze
 		while(stage == 1){
@@ -154,7 +158,6 @@ void curveyLineHandler(int scan_row){
 }
 
 void tapeMazeHandler(int scan_row){
-	v_go = 55;
 	take_picture();
 
 	// Treshold for black/white screening
@@ -317,9 +320,27 @@ void followLine(int error){
 void wallMazeHandler(){
 	int left = read_analog(left_ir);
 	int right = read_analog(right_ir);
+	int front = read_analog(mid_ir);
+
+	// If a wall is in front of the robot, don't crash
+	if(front > ir_close_reading){
+			// If the right side is clear
+			if(right < ir_close_reading){
+				// Turn right
+				set_motor(1, v_go);
+				set_motor(2, v_go*0.8);
+			}
+			else{
+				// Turn left
+				set_motor(1, v_go*0.8);
+				set_motor(2, v_go);
+			}
+	}
+
 	wallMazeStraight(right,left);
 }
 
+// Takes a left IR reading, and a right IR reading. Will calculate an error and drive the robot in the middle of the two walls
 void wallMazeStraight(int right, int left){
 	int dv = wallMazeOffset(right, left);
 	if(dev){
@@ -329,10 +350,8 @@ void wallMazeStraight(int right, int left){
 	set_motor(2,v_go-dv);
 }
 
+// Calculates an error value for getting the robot to drive in between the two walls
 int wallMazeOffset(int right, int left){
  int error = (left-right);
  return ((error*maze_kp)+(error*maze_ki)*(error*maze_kd));
- if(dev){
-
- }
 }
