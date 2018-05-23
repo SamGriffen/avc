@@ -4,18 +4,12 @@
 #include "E101.h"
 
 int stage = 0; //what stage the bot is in
-int wallClose = 200; //200 is test value change later. constant for what a close wall reads
-
-//fields holding the max/min whiteness of pixels in a row
-int max = 0;
-int min = 255;
-int upperIntensityMargin = 150; //margin of error for if line all white. will need fine tuning
-int lowerIntensityMargin = 50; //margin of error for if line all black
-int upperIndex = 320;
-int lowerIndex = 0;
 
 int minThreshold = 80;
 int maxThreshold = 160;
+
+int scanUpperLimit = 320;
+int scanLowerLimit = 0;
 
 // Array to store the line as a sequence of 1 and 0
 int whiteArray[320];
@@ -48,14 +42,10 @@ double maze_ki = 0.000;
 
 // Stores total error
 int total_error = 0;
-
-// Stores the last error
 int prevError = 0;
 
-// Stores the last time
+// Stores the last time and current time
 struct timeval last_time;
-
-// Stores current time
 struct timeval current_time;
 
 // Stores time at startup
@@ -75,7 +65,6 @@ int scanRow(int scan_row, int threshold);
 void followLine(int error);
 int followMaze();
 void openGate();
-//void changeWhitenessArray(int scan_row);
 void curveyLineHandler(int scan_row);
 void tapeMazeHandler(int scan_row);
 void wallMazeStraight(int right, int left);
@@ -100,7 +89,6 @@ int main(){
 
 	try{
 		openGate();
-		// sleep1(5,0);
 
 		//run line
 		while(stage == 0){
@@ -110,7 +98,6 @@ int main(){
 
 		//run line maze
 		while(stage == 1){
-			//tapeMazeHandler(error, scan_row);
 			//fprintf(file, "THe 3rd quadrant has been reached\n");
 			tapeMazeHandler(scan_row);
 		}
@@ -134,9 +121,7 @@ int main(){
 void curveyLineHandler(int scan_row){
 	// Take picture for this loop of logic
 	take_picture();
-	// Find the threshold for black/white differentiating
-	// int threshold = findMinMax(scan_row);
-
+	// Threshold for black/white differentiating
 	int threshold = 120;
 
 	// Populate the white array, and get the number of white pixels
@@ -166,136 +151,71 @@ void curveyLineHandler(int scan_row){
 		followLine(error);
 	}
 
-	//reset min and max
-	min = 255;
-	max = 0;
 }
 
 void tapeMazeHandler(int scan_row){
+	v_go = 55;
 	take_picture();
 
+	// Treshold for black/white screening
 	int threshold = 120;
+	scan_row = 120;
 
+	// Populate the white array, and get the number of white pixels
 	int numberWhites = scanRow(scan_row, threshold);
 
-
-	///take scan
-	//find max and min values of whiteness on the scan line
-	upperIndex = 320;
-	lowerIndex = 0;
-	//reset min and max
-	min = 255;
-	max = 0;
-	// int threshold = findMinMax(scan_row);
-
-	///if all white
-		///move bot forwards
+	// if most of scan white, move forwards
 	if(numberWhites > allWhiteCount){
 		set_motor(1, v_go);
 		set_motor(2, v_go);
 	}
 
-	///else if all black
-		///turn bot hard left
+	// else if most of scan black, turn left
 	else if(numberWhites < 10){
 		set_motor(1, 0);
 		set_motor(2, v_go);
 	}
 
 	///else must be a mix of black and white
-		///scan left side of scan line
-		///if all white
-			///take another scan further up
-			///if line further up go straight else turn left
 	else{
-		upperIndex = 160;
-		lowerIndex = 0;
-		//reset min and max
-		min = 255;
-		max = 0;
-		// threshold = findMinMax(scan_row);
 
-		// If all the pixels are white
-		if(numberWhites > allWhiteCount){
-			scan_row = 220;
-			// threshold = findMinMax(scan_row);
+		//scan further ahead to see if can keep going straight
+		scan_row = 220;
+		numberWhites = scanRow(scan_row, threshold);
+		scan_row = 120;
 
-			// If it is all black
-			if(numberWhites < 10){
-				set_motor(1, v_go);
-				set_motor(2, v_go);
-			}else{
-				set_motor(1, 0);
-				set_motor(2, v_go);
-			}
-			scan_row = 120;
-		}
-
-
-		///scan right side of scan line
-		///if all white
-			///take another scan further up
-			///if Line further up go straight else turn right
-		upperIndex = 320;
-		lowerIndex = 160;
-		//reset min and max
-		min = 255;
-		max = 0;
-		// threshold = findMinMax(scan_row);
-
-		// If all the pixels are white
-		if(numberWhites > allWhiteCount){
-			scan_row = 220;
-			min = 255;
-			max = 0;
-			// threshold = findMinMax(scan_row);
-
-			// If they are all black
-			if(numberWhites < 10){
-				set_motor(1, v_go);
-				set_motor(2, v_go);
-			}else{
-				set_motor(1, v_go);
-				set_motor(2, 0);
-			}
-			scan_row = 120;
-
-			if(dev){
-				printf("lineWhiteness/threshold: %d, right all white \n", threshold);
-			}
-		}
-
-		///else no big turns needed
-			///make sure parallel to line, same method as curved method
-		else{
-			upperIndex = 320;
-			lowerIndex = 0;
+		//if there is a line ahead, try to follow it using error correction
+		if(numberWhites > 10){
 			int error = findCurveError(threshold);
 			followLine(error);
-			//reset min and max
-			min = 255;
-			max = 0;
 			if(dev){
 				printf("adjusting to line \n");
 			}
+
+		//isn't a line ahead so scan the left side for a turn
+		}else{
+
+			scanLowerLimit = 0;
+			scanUpperLimit = 160;
+			numberWhites = scanRow(scan_row, threshold);
+			scanLowerLimit = 0;
+			scanUpperLimit = 320;
+
+			//if there is a line going to the left go left
+			if(numberWhites > allWhiteCount/2){
+				set_motor(1, 0);
+				set_motor(2, v_go);
+			}
+
+			//otherwise turn right as can't go forwards or left
+			else{
+				set_motor(1, v_go);
+				set_motor(2, 0);
+			}
 		}
 
 	}
 }
-
-/*
-void changeWhitenessArray(int scan_row){
-	whitenessOfScans -= averageWhiteArray[averageCounter];
-	averageWhiteArray[averageCounter] = findMinMax(scan_row);
-	whitenessOfScans += averageWhiteArray[averageCounter];
-	normalWhiteness = whitenessOfScans/100;
-	averageCounter ++;
-	if(averageCounter == 100){
-		averageCounter = 0;
-	}
-	fprintf(file, "normalWhiteness: %d \n", normalWhiteness);
-}
-*/
 
 void openGate(){
 	//set up network variables controlling message sent/received and if connected or not
@@ -313,39 +233,19 @@ void openGate(){
 	send_to_server(password);
 }
 
-//with a given row to scan, find the min and max whiteness valuess
-int findMinMax(int scan_row){
- 	for(int i = lowerIndex; i <upperIndex;i++){
-		int pix = get_pixel(scan_row,i,3);
-
-		//set max if larger
-		if( pix > max){
-				max = pix;
-			}
-			//set min if smaller
-			if(pix < min){
-				min =pix;
-			}
-	}
-
-	//set threshold of what consitutes a white pixel by average of max and min
-	int threshold = (max+min)/2;
-	return threshold;
-}
-
 // Method that takes a row to scan, and a threshold value to work with, and returns the numer of white pixels in that scan row. Also populates the whiteArray
 int scanRow(int scan_row, int threshold){
 	// Initialize the variable to store number of whites in
 	int numberWhites = 0;
 
 	//go through all pixels. if below threshold its not a white pixel. if above then it is white
-	for(int i = 0; i <320;i++){
+	for(int i = scanLowerLimit; i <scanUpperLimit;i++){
 		int pix = get_pixel(scan_row,i,3);
 		// printf("%d\n", pix);
 		if(pix > threshold){
 			// Increment the number of white pixels
 			numberWhites += 1;
-			// Add the pixel to the white array
+			// Add the pixel to the white array, value 1
 			whiteArray[i] = 1;
 		}
 		else{
@@ -399,6 +299,7 @@ void followLine(int error){
 		fprintf(file, "P Action: %d  I Action: %d  D Action: %d\n", (int)((double)error * kp),(int)((double)total_error * ki),(int)((double)errorDifference * kd));
 		fprintf(file, "Left: %d Right: %d\n\n", v_left, v_right);
 	}
+
 	if(csv_dev){
 		// Get the current time
 	 	long csv_time = (current_time.tv_sec - start_time.tv_sec) * 1000 + (current_time.tv_usec - start_time.tv_usec) / 1000;
@@ -410,6 +311,7 @@ void followLine(int error){
 
 	prevError = error; // Store the current error as the previous error
 }
+
 
 //following maze
 void wallMazeHandler(){
@@ -428,9 +330,9 @@ void wallMazeStraight(int right, int left){
 }
 
 int wallMazeOffset(int right, int left){
-	int error = (left-right);
-	return ((error*maze_kp)+(error*maze_ki)*(error*maze_kd));
-	if(dev){
+ int error = (left-right);
+ return ((error*maze_kp)+(error*maze_ki)*(error*maze_kd));
+ if(dev){
 
-	}
+ }
 }
