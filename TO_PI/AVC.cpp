@@ -144,6 +144,9 @@ void curveyLineHandler(int scan_row){
 	// TODO tune this value
 	else if(numberWhites > allWhiteCount){
 		stage ++;
+		set_motor(1,v_go);
+		set_motor(2,v_go);
+		sleep1(1,0);
 		fprintf(file, "Moved to the line maze\n");
 	}
 	//if mix of pixels, keep following the line
@@ -155,7 +158,7 @@ void curveyLineHandler(int scan_row){
 
 void tapeMazeHandler(int scan_row){
 	take_picture();
-	v_go = 45;
+	v_go = 55;
 	int error = 0;
 	// Treshold for black/white screening
 	int threshold = 120;
@@ -167,35 +170,35 @@ void tapeMazeHandler(int scan_row){
 	int numberWhitesLeft = scanCol(scan_col, threshold);
 	scan_col = 180;
 	int numberWhitesRight = scanCol(scan_col, threshold);
-	fprintf(file, "row:%d, left: %d, right: %d\n", numberWhitesRow, numberWhitesLeft, numberWhitesRight);
+	fprintf(file, "row:%d, left: %d, right: %d    ", numberWhitesRow, numberWhitesLeft, numberWhitesRight);
 
-	//if there is a line ahead, try to follow it using error correction
+
+	//try to go forwards
 	if(numberWhitesRow > 30){
-		if(dev){
-			fprintf(file, "adjusting to line\n");
-		}
-		error = findCurveError();
-		followLine(error);
+		set_motor(1, v_go);
+		set_motor(2, v_go);
+		fprintf(file, "going forward\n");
 	}
-	//If no line ahead see line to left
+	//If no line ahead see line to left. also need to be more pixels left than right
 	else if(numberWhitesLeft > 30){
-		set_motor(1, -1.5 * v_go);
-		set_motor(2, 1.5 * v_go);
+		set_motor(1, -1 * v_go);
+		set_motor(2, v_go);
 		fprintf(file, "Line to left turning left\n");
 	}
-	//if no line to left see line to right
+	//if no line to left see line to right. also there need to be more pixels on right than left
 	else if(numberWhitesRight > 30){
-		set_motor(1, 1.5 * v_go);
+		set_motor(1, v_go);
 		set_motor(2, -1 * v_go);
 		fprintf(file, "line to right turning right\n");
 	}
 	//Else turn around
 	else{
 		set_motor(1, -1 * v_go);
-		set_motor(2, 1.5 * v_go);
+		set_motor(2, v_go);
 		fprintf(file, "cant see any line to left forwards or right. turning around\n");
 	}
-
+	//wait a bit so turn is made
+	sleep1(0,50000);
 }
 
 void openGate(){
@@ -206,11 +209,8 @@ void openGate(){
 	char serverAddress[15] = "130.195.6.196";
 
 	connect_to_server(serverAddress, port);
-
 	send_to_server(message);
-
 	receive_from_server(password);
-
 	send_to_server(password);
 }
 
@@ -243,7 +243,7 @@ int scanCol(int scan_col, int threshold){
 	// Initialize the variable to store number of whites in
 	int numberWhites = 0;
 	//go through all pixels. if below threshold its not a white pixel. if above then it is white
-	for(int i = 0; i <240;i++){
+	for(int i = 60; i <180;i++){
 		int pix = get_pixel(i,scan_col,3);
 		// printf("%d\n", pix);
 		if(pix > threshold){
