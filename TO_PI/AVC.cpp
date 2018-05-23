@@ -82,7 +82,7 @@ int main(){
 
 	// Open a file for logging
 	file = fopen("log.txt", "w");
-	
+
 	// Open a csv for logging
 	csv_log = fopen("csv_log.csv", "w");
 
@@ -92,14 +92,15 @@ int main(){
 	int scan_row = 120;
 
 	try{
-		openGate();
+		// openGate();
+
+		stage = 2;
 
 		//run line
 		while(stage == 0){
 			curveyLineHandler(scan_row);
 		}
 
-		stage = 2;
 
 		//run line maze
 		while(stage == 1){
@@ -323,22 +324,25 @@ void wallMazeHandler(){
 	int right = read_analog(right_ir);
 	int front = read_analog(mid_ir);
 
+	fprintf(file, "Left: %d Right: %d Front: %d");
+
 	// If a wall is in front of the robot, don't crash
 	if(front > ir_close_reading){
 			// If the right side is clear
-			if(right < ir_close_reading){
+			if(right < ir_close_reading * 0.8){
 				// Turn right
 				set_motor(1, v_go);
-				set_motor(2, v_go*0.8);
+				set_motor(2, v_go*0.5);
 			}
 			else{
 				// Turn left
-				set_motor(1, v_go*0.8);
+				set_motor(1, v_go*0.5);
 				set_motor(2, v_go);
 			}
 	}
-
-	wallMazeStraight(right,left);
+	else{
+		wallMazeStraight(right,left);
+	}
 }
 
 // Takes a left IR reading, and a right IR reading. Will calculate an error and drive the robot in the middle of the two walls
