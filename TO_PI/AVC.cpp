@@ -9,7 +9,6 @@ int minThreshold = 80;
 int maxThreshold = 160;
 
 int scanUpperLimit = 320;
-int scanLowerLimit = 0;
 
 // Array to store the line as a sequence of 1 and 0
 int whiteArray[320];
@@ -18,7 +17,7 @@ int whiteArray[320];
 int allWhiteCount = 200;
 
 // Flag representing whether to log to file or not
-bool dev = false;
+bool dev = true;
 
 // Flag representing whether to log to a csv
 bool csv_dev = true;
@@ -29,19 +28,16 @@ int mid_ir = 1;
 int right_ir = 2;
 
 // Varialbes for PID control
-unsigned char v_go = 45;
+unsigned char v_go = 40;
 // double kp = 0.25;
 double kp = 0.25;
 double kd = 0.45;
-double ki = 0.0005;
+double ki = 0.000;
 
 // For maze
 double maze_kp = 0.25;
 double maze_kd = 0.45;
 double maze_ki = 0.000;
-
-// Variable to store the minimum reading for a wall being "close"
-int ir_close_reading = 130;
 
 // Stores total error
 int total_error = 0;
@@ -60,7 +56,7 @@ FILE *file;
 FILE *csv_log;
 
 int findMinMax(int scan_row);
-int findCurveError(int threshold);
+int findCurveError();
 
 // Method for filling the whiteArray array of white/black for a given row, given a threshold value. Also returns the number of white pixels
 int scanRow(int scan_row, int threshold);
@@ -73,7 +69,7 @@ void tapeMazeHandler(int scan_row);
 void wallMazeStraight(int right, int left);
 int wallMazeOffset(int right, int left);
 void wallMazeHandler();
-bool scanRed(int scan_row);
+int scanCol(int scan_col, int threshold);
 
 int main(){
 	init();
@@ -82,7 +78,7 @@ int main(){
 
 	// Open a file for logging
 	file = fopen("log.txt", "w");
-	
+
 	// Open a csv for logging
 	csv_log = fopen("csv_log.csv", "w");
 
@@ -99,7 +95,6 @@ int main(){
 			curveyLineHandler(scan_row);
 		}
 
-		stage = 2;
 
 		//run line maze
 		while(stage == 1){
@@ -132,7 +127,7 @@ void curveyLineHandler(int scan_row){
 	// Populate the white array, and get the number of white pixels
 	int numberWhites = scanRow(scan_row, threshold);
 
-	int error = findCurveError(threshold);//find new error
+	int error = findCurveError();//find new error
 
 	if(dev){
 		fprintf(file, "Error: %d  NOW: %d  Threshold: %d\n",error, numberWhites, threshold);;
@@ -149,7 +144,7 @@ void curveyLineHandler(int scan_row){
 	// TODO tune this value
 	else if(numberWhites > allWhiteCount){
 		stage ++;
-		fprintf(file, " moved to next stage linewhiteness/threshold: %d\n", threshold);
+		fprintf(file, "Moved to the line maze\n");
 	}
 	//if mix of pixels, keep following the line
 	else{
@@ -160,65 +155,47 @@ void curveyLineHandler(int scan_row){
 
 void tapeMazeHandler(int scan_row){
 	take_picture();
-
+	v_go = 45;
+	int error = 0;
 	// Treshold for black/white screening
 	int threshold = 120;
-	scan_row = 120;
+	scan_row = 220;
+	int scan_col = 60;
 
-	// Populate the white array, and get the number of white pixels
-	int numberWhites = scanRow(scan_row, threshold);
+	// Get number of pixels in row ahead
+	int numberWhitesRow = scanRow(scan_row, threshold);
+	int numberWhitesLeft = scanCol(scan_col, threshold);
+	scan_col = 180;
+	int numberWhitesRight = scanCol(scan_col, threshold);
+	fprintf(file, "row:%d, left: %d, right: %d\n", numberWhitesRow, numberWhitesLeft, numberWhitesRight);
 
-	// if most of scan white, move forwards
-	if(numberWhites > allWhiteCount){
-		set_motor(1, v_go);
-		set_motor(2, v_go);
-	}
-
-	// else if most of scan black, turn left
-	else if(numberWhites < 10){
-		set_motor(1, 0);
-		set_motor(2, v_go);
-	}
-
-	///else must be a mix of black and white
-	else{
-
-		//scan further ahead to see if can keep going straight
-		scan_row = 220;
-		numberWhites = scanRow(scan_row, threshold);
-		scan_row = 120;
-
-		//if there is a line ahead, try to follow it using error correction
-		if(numberWhites > 10){
-			int error = findCurveError(threshold);
-			followLine(error);
-			if(dev){
-				printf("adjusting to line \n");
-			}
-
-		//isn't a line ahead so scan the left side for a turn
-		}else{
-
-			scanLowerLimit = 0;
-			scanUpperLimit = 160;
-			numberWhites = scanRow(scan_row, threshold);
-			scanLowerLimit = 0;
-			scanUpperLimit = 320;
-
-			//if there is a line going to the left go left
-			if(numberWhites > allWhiteCount/2){
-				set_motor(1, 0);
-				set_motor(2, v_go);
-			}
-
-			//otherwise turn right as can't go forwards or left
-			else{
-				set_motor(1, v_go);
-				set_motor(2, 0);
-			}
+	//if there is a line ahead, try to follow it using error correction
+	if(numberWhitesRow > 30){
+		if(dev){
+			fprintf(file, "adjusting to line\n");
 		}
-
+		error = findCurveError();
+		followLine(error);
 	}
+	//If no line ahead see line to left
+	else if(numberWhitesLeft > 30){
+		set_motor(1, -1.5 * v_go);
+		set_motor(2, 1.5 * v_go);
+		fprintf(file, "Line to left turning left\n");
+	}
+	//if no line to left see line to right
+	else if(numberWhitesRight > 30){
+		set_motor(1, 1.5 * v_go);
+		set_motor(2, -1 * v_go);
+		fprintf(file, "line to right turning right\n");
+	}
+	//Else turn around
+	else{
+		set_motor(1, -1 * v_go);
+		set_motor(2, 1.5 * v_go);
+		fprintf(file, "cant see any line to left forwards or right. turning around\n");
+	}
+
 }
 
 void openGate(){
@@ -243,7 +220,7 @@ int scanRow(int scan_row, int threshold){
 	int numberWhites = 0;
 
 	//go through all pixels. if below threshold its not a white pixel. if above then it is white
-	for(int i = scanLowerLimit; i <scanUpperLimit;i++){
+	for(int i = 0; i <scanUpperLimit;i++){
 		int pix = get_pixel(scan_row,i,3);
 		// printf("%d\n", pix);
 		if(pix > threshold){
@@ -261,8 +238,30 @@ int scanRow(int scan_row, int threshold){
 	return numberWhites;
 }
 
+// Method that takes a column to scan, and a threshold value to work with, and returns the numer of white pixels in that column row. Also populates the whiteArray
+int scanCol(int scan_col, int threshold){
+	// Initialize the variable to store number of whites in
+	int numberWhites = 0;
+	//go through all pixels. if below threshold its not a white pixel. if above then it is white
+	for(int i = 0; i <240;i++){
+		int pix = get_pixel(i,scan_col,3);
+		// printf("%d\n", pix);
+		if(pix > threshold){
+			// Increment the number of white pixels
+			numberWhites += 1;
+			// Add the pixel to the white array, value 1
+			whiteArray[i] = 1;
+		}
+		else{
+			// Set this pixel in the whitearray to 0
+			whiteArray[i] = 0;
+		}
+	}
+	return numberWhites;
+}
+
 //find direction error when following line
-int findCurveError(int threshold){
+int findCurveError(){
 	//stores how far to the left or right the line is
 	int error = 0;
 	int numberWhites = 0;
@@ -321,27 +320,9 @@ void followLine(int error){
 void wallMazeHandler(){
 	int left = read_analog(left_ir);
 	int right = read_analog(right_ir);
-	int front = read_analog(mid_ir);
-
-	// If a wall is in front of the robot, don't crash
-	if(front > ir_close_reading){
-			// If the right side is clear
-			if(right < ir_close_reading){
-				// Turn right
-				set_motor(1, v_go);
-				set_motor(2, v_go*0.8);
-			}
-			else{
-				// Turn left
-				set_motor(1, v_go*0.8);
-				set_motor(2, v_go);
-			}
-	}
-
 	wallMazeStraight(right,left);
 }
 
-// Takes a left IR reading, and a right IR reading. Will calculate an error and drive the robot in the middle of the two walls
 void wallMazeStraight(int right, int left){
 	int dv = wallMazeOffset(right, left);
 	if(dev){
@@ -351,32 +332,10 @@ void wallMazeStraight(int right, int left){
 	set_motor(2,v_go-dv);
 }
 
-// Calculates an error value for getting the robot to drive in between the two walls
 int wallMazeOffset(int right, int left){
  int error = (left-right);
  return ((error*maze_kp)+(error*maze_ki)*(error*maze_kd));
-}
+ if(dev){
 
-// Method that takes a row to scan and returns if there is a correct amount of red pixels to class as red tape. Requires that take_picture has been called;
-bool scanRed(int scan_row){
-	// Initialize the variable to store number of Reds in
-	int numberReds = 0;
-	//error value to ignore close values (to make sure that it is deffinitly red)
-	int colourError = 30;
-	//a threshold amount of red pixels it must pass to return true
-	int redThreshold = 50;
-	//go through all pixels. if below threshold its not a white pixel. if above then it is white
-	for(int i = 100; i <220;i++){
-		int pixRed = get_pixel(scan_row,i,0);
-		int pixGreen = get_pixel(scan_row,i,1);
-		int pixBlue = get_pixel(scan_row,i,2);
-		//int pixWhite = get_pixel(scan_row,i,3;
-
-		if((pixRed-colourError > pixGreen) && (pixRed-colourError > pixBlue)){
-			// Increment the number of red pixels
-			numberReds += 1;
-		}
-	}
-
-	return (numberReds>redThreshold);
+ }
 }
