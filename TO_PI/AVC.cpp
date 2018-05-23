@@ -19,8 +19,8 @@ int allWhiteCount = 200;
 // Flag representing whether to log to file or not
 bool dev = false;
 
-+// Flag representing whether to log to a csv
-+bool csv_dev = true;
+// Flag representing whether to log to a csv
+bool csv_dev = true;
 
 // Declare pins for IR sensors
 int left_ir = 0;
@@ -137,6 +137,7 @@ void curveyLineHandler(int scan_row){
 }
 
 void tapeMazeHandler(int scan_row){
+	v_go = 55;
 	take_picture();
 
 	// Treshold for black/white screening
@@ -295,10 +296,9 @@ void followLine(int error){
 }
 
 
-
 //following maze
 void wallMazeHandler(){
- int left = read_anal og(left_ir);
+ int left = read_analog(left_ir);
  int right = read_analog(right_ir);
  wallMazeStraight(right,left);
 }
@@ -316,6 +316,6 @@ int wallMazeOffset(int right, int left){
  int error = (left-right);
  return ((error*maze_kp)+(error*maze_ki)*(error*maze_kd));
  if(dev){
-
+	 
  }
 }
