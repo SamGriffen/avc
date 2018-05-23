@@ -73,6 +73,7 @@ void tapeMazeHandler(int scan_row);
 void wallMazeStraight(int right, int left);
 int wallMazeOffset(int right, int left);
 void wallMazeHandler();
+bool scanRed(int scan_row);
 
 int main(){
 	init();
@@ -354,4 +355,29 @@ void wallMazeStraight(int right, int left){
 int wallMazeOffset(int right, int left){
  int error = (left-right);
  return ((error*maze_kp)+(error*maze_ki)*(error*maze_kd));
+}
+
+// Method that takes a row to scan and returns if there is a correct amount of red pixels to class as red tape
+int scanRed(int scan_row){
+	// Initialize the variable to store number of Reds in
+	int numberReds = 0;
+	//error value to ignore close values (to make sure that it is deffinitly red)
+	int colourError = 30;
+	//a threshold amount of red pixels it must pass to return true
+	int redThreshold = 50;
+	//go through all pixels. if below threshold its not a white pixel. if above then it is white
+	for(int i = scanLowerLimit; i <scanUpperLimit;i++){
+		int pixRed = get_pixel(scan_row,i,0);
+		int pixGreen = get_pixel(scan_row,i,1);
+		int pixBlue = get_pixel(scan_row,i,2);
+		//int pixWhite = get_pixel(scan_row,i,3;
+
+		if((pixRed-colourError > pixGreen) && (pixRed-colourError > pixBlue)){
+			// Increment the number of red pixels
+			numberReds += 1;
+		}
+
+	}
+
+	return (numberReds>redThreshold);
 }
