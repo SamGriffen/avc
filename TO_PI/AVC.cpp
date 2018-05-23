@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <sys/time.h>
+#include <time.h>
 #include "E101.h"
 
 int stage = 0; //what stage the bot is in
@@ -40,6 +41,11 @@ double kp = 0.25;
 double kd = 0.45;
 double ki = 0.000;
 
+// For maze
+double maze_kp = 0.25;
+double maze_kd = 0.45;
+double maze_ki = 0.000;
+
 // Stores total error
 int total_error = 0;
 
@@ -52,8 +58,13 @@ struct timeval last_time;
 // Stores current time
 struct timeval current_time;
 
+// Stores time at startup
+struct timeval start_time;
+
 // Stores the file
 FILE *file;
+
+FILE *csv_log;
 
 int findMinMax(int scan_row);
 int findCurveError(int threshold);
@@ -67,9 +78,14 @@ void openGate();
 //void changeWhitenessArray(int scan_row);
 void curveyLineHandler(int scan_row);
 void tapeMazeHandler(int scan_row);
+void wallMazeStraight(int right, int left);
+int wallMazeOffset(int right, int left);
+void wallMazeHandler();
 
 int main(){
 	init();
+
+	gettimeofday(&start_time, 0);
 
 	// Open a file for logging
 	file = fopen("log.txt", "w");
@@ -77,7 +93,7 @@ int main(){
 	// Open a csv for logging
 	csv_log = fopen("csv_log.csv", "w");
 
-	fprintf("Error, Time\n");
+	fprintf(csv_log, "Error, Time\n");
 
 	// Define the row to scan on
 	int scan_row = 120;
@@ -101,7 +117,7 @@ int main(){
 
 		//run maze
 		while(stage == 2){
-			followMaze();
+			wallMazeHandler();
 		}
 
 		//if program finishes, turn off the motors
@@ -385,7 +401,7 @@ void followLine(int error){
 	}
 	if(csv_dev){
 		// Get the current time
-		long csv_time = current_time.tv_sec * 1000000 + current_time.tv_usec;
+	 	long csv_time = (current_time.tv_sec - start_time.tv_sec) * 1000 + (current_time.tv_usec - start_time.tv_usec) / 1000;
 		fprintf(csv_log, "%d,%d\n", error, csv_time);
 	}
 
@@ -397,12 +413,12 @@ void followLine(int error){
 
 //following maze
 void wallMazeHandler(){
-	int left = read_anal og(left_ir);
+	int left = read_analog(left_ir);
 	int right = read_analog(right_ir);
 	wallMazeStraight(right,left);
 }
 
-void wallMazeStraight (int right, int left){
+void wallMazeStraight(int right, int left){
 	int dv = wallMazeOffset(right, left);
 	if(dev){
 		//fprintf(file, "v_go: %d  dv: %d\n", v_go, dv);
