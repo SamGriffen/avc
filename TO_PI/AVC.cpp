@@ -204,7 +204,9 @@ void tapeMazeHandler(int scan_row){
 	printf("\n");
 
 	// Check if we are looking at a red line, if so, go to the next quadrant
-	if(s)
+	if(scanRed()){
+		stage++;
+	}
 }
 
 void turnRight(){
@@ -404,7 +406,7 @@ int wallMazeOffset(int right, int left){
 }
 
 // Method that takes a row to scan and returns if there is a correct amount of red pixels to class as red tape
-int scanRed(int scan_row){
+bool scanRed(int scan_row){
 	// Initialize the variable to store number of Reds in
 	int numberReds = 0;
 	//error value to ignore close values (to make sure that it is deffinitly red)
