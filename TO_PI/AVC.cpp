@@ -10,6 +10,9 @@ int maxThreshold = 160;
 
 int scanUpperLimit = 320;
 
+//motor correction for tape maze
+int motorCorrection = 15;
+
 // Array to store the line as a sequence of 1 and 0
 int whiteArray[320];
 
@@ -170,8 +173,8 @@ void tapeMazeHandler(int scan_row){
 	int threshold = 120;
 
 	// Define our scan lines
-	int leftCol = 20;
-	int rightCol = 300;
+	int leftCol = 40;
+	int rightCol = 280;
 	int midRow = 200;
 
 	// Scan left, right, and center.
@@ -189,12 +192,13 @@ void tapeMazeHandler(int scan_row){
 	else if(midWhites > minPix){
 		// Populate the white array, and get the number of white pixels
 		scanRow(scan_row, threshold);
-
 		int error = findCurveError();//find new error
 		printf("FORWARD ");
-
-		// Follow the line
+		// Follow the line. Lower the speed to that the line is followed more closely
+		v_go = 40;
 		followLine(error);
+		//put speed back to how it was
+		v_go = 45;
 	}
 	else{
 		printf("RIGHT ");
@@ -204,7 +208,7 @@ void tapeMazeHandler(int scan_row){
 	printf("\n");
 
 	// Check if we are looking at a red line, if so, go to the next quadrant
-	if(scanRed()){
+	if(scanRed(scan_row)){
 		stage++;
 	}
 }
@@ -220,7 +224,7 @@ void turnRight(){
 		take_picture();
 		mid = scanRow(row, threshold);
 		printf("Right: %d\n", mid);
-		set_motor(1, v_go + 10);
+		set_motor(1, v_go + motorCorrection);
 		set_motor(2, 0);
 	}
 }
@@ -237,7 +241,7 @@ void turnLeft(){
 		mid = scanRow(row, threshold);
 		printf("Left: %d\n", mid);
 		set_motor(1, 0);
-		set_motor(2, v_go + 10);
+		set_motor(2, v_go + motorCorrection);
 	}
 }
 
@@ -249,11 +253,8 @@ void openGate(){
 	char serverAddress[15] = "130.195.6.196";
 
 	connect_to_server(serverAddress, port);
-
 	send_to_server(message);
-
 	receive_from_server(password);
-
 	send_to_server(password);
 }
 
@@ -414,7 +415,7 @@ bool scanRed(int scan_row){
 	//a threshold amount of red pixels it must pass to return true
 	int redThreshold = 50;
 	//go through all pixels. if below threshold its not a white pixel. if above then it is white
-	for(int i = scanLowerLimit; i <scanUpperLimit;i++){
+	for(int i = 0; i <scanUpperLimit;i++){
 		int pixRed = get_pixel(scan_row,i,0);
 		int pixGreen = get_pixel(scan_row,i,1);
 		int pixBlue = get_pixel(scan_row,i,2);
