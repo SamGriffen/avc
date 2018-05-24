@@ -10,6 +10,9 @@ int maxThreshold = 160;
 
 int scanUpperLimit = 320;
 
+//motor correction for tape maze
+int motorCorrection = 15;
+
 // Array to store the line as a sequence of 1 and 0
 int whiteArray[320];
 
@@ -71,9 +74,12 @@ int wallMazeOffset(int right, int left);
 void wallMazeHandler();
 int scanCol(int scan_col, int threshold);
 bool scanRed(int scan_row);
-
 void turnLeft();
 void turnRight();
+void mazeTurnLeft();
+void mazeTurnRight();
+void mazeDeadEnd();
+
 
 int main(){
 	init();
@@ -92,9 +98,9 @@ int main(){
 	int scan_row = 120;
 
 	try{
-		// openGate();
+		 openGate();
 
-		stage = 1;
+		stage = 2;
 
 		//run line
 		while(stage == 0){
@@ -170,8 +176,8 @@ void tapeMazeHandler(int scan_row){
 	int threshold = 120;
 
 	// Define our scan lines
-	int leftCol = 20;
-	int rightCol = 300;
+	int leftCol = 40;
+	int rightCol = 280;
 	int midRow = 200;
 
 	// Scan left, right, and center.
@@ -179,7 +185,7 @@ void tapeMazeHandler(int scan_row){
 	int rightWhites = scanCol(rightCol, threshold);
 	int midWhites = scanRow(midRow, threshold);
 
-	printf("Left: %d Right: %d Mid: %d ", leftWhites, rightWhites, midWhites);
+	fprintf(file, "Left: %d Right: %d Mid: %d ", leftWhites, rightWhites, midWhites);
 
 	// We want to prioritise a left turn, as we are implementing a left hand to the wall technique
 	if(leftWhites > minPix && midWhites < minPix){
@@ -189,23 +195,27 @@ void tapeMazeHandler(int scan_row){
 	else if(midWhites > minPix){
 		// Populate the white array, and get the number of white pixels
 		scanRow(scan_row, threshold);
-
 		int error = findCurveError();//find new error
-		printf("FORWARD ");
-
-		// Follow the line
+		fprintf(file, "FORWARD ");
+		// Follow the line. Lower the speed to that the line is followed more closely
+		v_go = 40;
 		followLine(error);
+		//put speed back to how it was
+		v_go = 45;
 	}
 	else{
-		printf("RIGHT ");
+		fprintf(file,"RIGHT ");
 
 		turnRight();
 	}
 	printf("\n");
 
 	// Check if we are looking at a red line, if so, go to the next quadrant
-	if(scanRed()){
+	if(scanRed(scan_row)){
 		stage++;
+		fprintf(file, "Moving into walled maze\n");
+		//set motor to qadrant 4 speed
+		v_go = 45;
 	}
 }
 
@@ -219,8 +229,8 @@ void turnRight(){
 	while(mid < 20){
 		take_picture();
 		mid = scanRow(row, threshold);
-		printf("Right: %d\n", mid);
-		set_motor(1, v_go + 10);
+		fprintf(file, "Right: %d\n", mid);
+		set_motor(1, v_go + motorCorrection);
 		set_motor(2, 0);
 	}
 }
@@ -235,9 +245,9 @@ void turnLeft(){
 	while(mid < 20){
 		take_picture();
 		mid = scanRow(row, threshold);
-		printf("Left: %d\n", mid);
+		fprintf(file, "Left: %d\n", mid);
 		set_motor(1, 0);
-		set_motor(2, v_go + 10);
+		set_motor(2, v_go + motorCorrection);
 	}
 }
 
@@ -249,11 +259,8 @@ void openGate(){
 	char serverAddress[15] = "130.195.6.196";
 
 	connect_to_server(serverAddress, port);
-
 	send_to_server(message);
-
 	receive_from_server(password);
-
 	send_to_server(password);
 }
 
@@ -365,26 +372,28 @@ void wallMazeHandler(){
 	int right = read_analog(right_ir);
 	int front = read_analog(mid_ir);
 
-	int ir_close_reading = 100;
+	int irFrontReading = 250;
+	int irSideReading = 110;
 
-	fprintf(file, "Left: %d Right: %d Front: %d");
+	printf("Left: %d Right: %d Front: %d \n",left, right, front);
 
-	// If a wall is in front of the robot, don't crash
-	if(front > ir_close_reading){
-			// If the right side is clear
-			if(right < ir_close_reading * 0.8){
-				// Turn right
-				set_motor(1, v_go);
-				set_motor(2, v_go*0.5);
-			}
-			else{
-				// Turn left
-				set_motor(1, v_go*0.5);
-				set_motor(2, v_go);
-			}
-	}
-	else{
+	//logic for turns. priority order: right, straight, left
+	if(right < irSideReading){
+		//go right
+		mazeTurnRight();
+
+	}else if(front < irFrontReading){
+		//go forwards
 		wallMazeStraight(right,left);
+
+	}else if(left < irSideReading){
+		//turn left
+		mazeTurnLeft();
+
+	}else{  //dead end
+		//go right
+		mazeDeadEnd();
+
 	}
 }
 
@@ -401,8 +410,22 @@ int wallMazeOffset(int right, int left){
  int error = (left-right);
  return ((error*maze_kp)+(error*maze_ki)*(error*maze_kd));
  if(dev){
-
  }
+}
+
+void mazeTurnLeft(){
+	set_motor(1, v_go / 2);
+	set_motor(2, v_go);
+}
+
+void mazeTurnRight(){
+	set_motor(1, v_go);
+	set_motor(2, v_go / 2);
+}
+
+void mazeDeadEnd(){
+	set_motor(1, v_go);
+	set_motor(2, -1 * v_go);
 }
 
 // Method that takes a row to scan and returns if there is a correct amount of red pixels to class as red tape
@@ -414,7 +437,7 @@ bool scanRed(int scan_row){
 	//a threshold amount of red pixels it must pass to return true
 	int redThreshold = 50;
 	//go through all pixels. if below threshold its not a white pixel. if above then it is white
-	for(int i = scanLowerLimit; i <scanUpperLimit;i++){
+	for(int i = 0; i <scanUpperLimit;i++){
 		int pixRed = get_pixel(scan_row,i,0);
 		int pixGreen = get_pixel(scan_row,i,1);
 		int pixBlue = get_pixel(scan_row,i,2);
