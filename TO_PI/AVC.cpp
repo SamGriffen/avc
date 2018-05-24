@@ -71,6 +71,9 @@ int wallMazeOffset(int right, int left);
 void wallMazeHandler();
 int scanCol(int scan_col, int threshold);
 
+void turnLeft();
+void turnRight();
+
 int main(){
 	init();
 
@@ -90,7 +93,7 @@ int main(){
 	try{
 		// openGate();
 
-		stage = 2;
+		stage = 1;
 
 		//run line
 		while(stage == 0){
@@ -156,48 +159,81 @@ void curveyLineHandler(int scan_row){
 }
 
 void tapeMazeHandler(int scan_row){
+	// Take a new picture
 	take_picture();
+
 	v_go = 45;
-	int error = 0;
-	// Treshold for black/white screening
+	// Minimum number of pixels that defines a line
+	int minPix = 10;
+
 	int threshold = 120;
-	scan_row = 220;
-	int scan_col = 60;
 
-	// Get number of pixels in row ahead
-	int numberWhitesRow = scanRow(scan_row, threshold);
-	int numberWhitesLeft = scanCol(scan_col, threshold);
-	scan_col = 180;
-	int numberWhitesRight = scanCol(scan_col, threshold);
-	fprintf(file, "row:%d, left: %d, right: %d\n", numberWhitesRow, numberWhitesLeft, numberWhitesRight);
+	// Define our scan lines
+	int leftCol = 20;
+	int rightCol = 300;
+	int midRow = 200;
 
-	//if there is a line ahead, try to follow it using error correction
-	if(numberWhitesRow > 30){
-		if(dev){
-			fprintf(file, "adjusting to line\n");
-		}
-		error = findCurveError();
+	// Scan left, right, and center.
+	int leftWhites = scanCol(leftCol, threshold);
+	int rightWhites = scanCol(rightCol, threshold);
+	int midWhites = scanRow(midRow, threshold);
+
+	printf("Left: %d Right: %d Mid: %d ", leftWhites, rightWhites, midWhites);
+
+	// We want to prioritise a left turn, as we are implementing a left hand to the wall technique
+	if(leftWhites > minPix && midWhites < minPix){
+		printf("LEFT ");
+		turnLeft();
+	}
+	else if(midWhites > minPix){
+		// Populate the white array, and get the number of white pixels
+		scanRow(scan_row, threshold);
+
+		int error = findCurveError();//find new error
+		printf("FORWARD ");
+
+		// Follow the line
 		followLine(error);
 	}
-	//If no line ahead see line to left
-	else if(numberWhitesLeft > 30){
-		set_motor(1, -1.5 * v_go);
-		set_motor(2, 1.5 * v_go);
-		fprintf(file, "Line to left turning left\n");
-	}
-	//if no line to left see line to right
-	else if(numberWhitesRight > 30){
-		set_motor(1, 1.5 * v_go);
-		set_motor(2, -1 * v_go);
-		fprintf(file, "line to right turning right\n");
-	}
-	//Else turn around
 	else{
-		set_motor(1, -1 * v_go);
-		set_motor(2, 1.5 * v_go);
-		fprintf(file, "cant see any line to left forwards or right. turning around\n");
-	}
+		printf("RIGHT ");
 
+		turnRight();
+	}
+	printf("\n");
+
+}
+
+void turnRight(){
+	// set_motor(1, v_go);
+	// set_motor(2, v_go);
+	// sleep1(0,100000);
+	int row = 20;
+	int threshold = 120;
+	int mid = scanRow(row, threshold);
+	while(mid < 20){
+		take_picture();
+		mid = scanRow(row, threshold);
+		printf("Right: %d\n", mid);
+		set_motor(1, v_go + 10);
+		set_motor(2, 0);
+	}
+}
+
+void turnLeft(){
+	// set_motor(1, v_go);
+	// set_motor(2, v_go);
+	// sleep1(0,100000);
+	int row = 20;
+	int threshold = 120;
+	int mid = scanRow(row, threshold);
+	while(mid < 20){
+		take_picture();
+		mid = scanRow(row, threshold);
+		printf("Left: %d\n", mid);
+		set_motor(1, 0);
+		set_motor(2, v_go + 10);
+	}
 }
 
 void openGate(){
@@ -323,6 +359,8 @@ void wallMazeHandler(){
 	int left = read_analog(left_ir);
 	int right = read_analog(right_ir);
 	int front = read_analog(mid_ir);
+
+	int ir_close_reading = 100;
 
 	fprintf(file, "Left: %d Right: %d Front: %d");
 
