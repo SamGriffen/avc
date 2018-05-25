@@ -31,15 +31,15 @@ int mid_ir = 1;
 int right_ir = 2;
 
 // Varialbes for PID control
-unsigned char v_go = 40;
+unsigned char v_go = 45;
 // double kp = 0.25;
 double kp = 0.25;
 double kd = 0.45;
 double ki = 0.000;
 
 // For maze
-double maze_kp = 0.25;
-double maze_kd = 0.45;
+double maze_kp = 0.15;
+double maze_kd = 0.25;
 double maze_ki = 0.000;
 
 // Stores total error
@@ -100,7 +100,7 @@ int main(){
 	try{
 		 openGate();
 
-		stage = 2;
+		// stage = 2;
 
 		//run line
 		while(stage == 0){
@@ -185,18 +185,18 @@ void tapeMazeHandler(int scan_row){
 	int rightWhites = scanCol(rightCol, threshold);
 	int midWhites = scanRow(midRow, threshold);
 
-	fprintf(file, "Left: %d Right: %d Mid: %d ", leftWhites, rightWhites, midWhites);
+	//fprintf(file, "Left: %d Right: %d Mid: %d ", leftWhites, rightWhites, midWhites);
 
 	// We want to prioritise a left turn, as we are implementing a left hand to the wall technique
 	if(leftWhites > minPix && midWhites < minPix){
-		printf("LEFT ");
+		//printf("LEFT ");
 		turnLeft();
 	}
 	else if(midWhites > minPix){
 		// Populate the white array, and get the number of white pixels
 		scanRow(scan_row, threshold);
 		int error = findCurveError();//find new error
-		fprintf(file, "FORWARD ");
+		//fprintf(file, "FORWARD ");
 		// Follow the line. Lower the speed to that the line is followed more closely
 		v_go = 40;
 		followLine(error);
@@ -204,11 +204,11 @@ void tapeMazeHandler(int scan_row){
 		v_go = 45;
 	}
 	else{
-		fprintf(file,"RIGHT ");
+		//fprintf(file,"RIGHT ");
 
 		turnRight();
 	}
-	printf("\n");
+	//printf("\n");
 
 	// Check if we are looking at a red line, if so, go to the next quadrant
 	if(scanRed(scan_row)){
@@ -368,33 +368,35 @@ void followLine(int error){
 
 //following maze
 void wallMazeHandler(){
+	v_go = 40;
 	int left = read_analog(left_ir);
 	int right = read_analog(right_ir);
 	int front = read_analog(mid_ir);
 
-	int irFrontReading = 250;
-	int irSideReading = 110;
+	int irFrontReading = 110;
+	int irSideReading = 200;
 
-	printf("Left: %d Right: %d Front: %d \n",left, right, front);
+	//printf("Left: %d Right: %d Front: %d ",left, right, front);
 
 	//logic for turns. priority order: right, straight, left
 	if(right < irSideReading){
 		//go right
 		mazeTurnRight();
+		//printf("RIGHT ");
 
 	}else if(front < irFrontReading){
 		//go forwards
 		wallMazeStraight(right,left);
+		//printf("FORWARD ");
 
 	}else if(left < irSideReading){
 		//turn left
 		mazeTurnLeft();
-
-	}else{  //dead end
-		//go right
-		mazeDeadEnd();
+		//printf("LEFT ");
 
 	}
+
+	//printf("\n");
 }
 
 void wallMazeStraight(int right, int left){
@@ -414,13 +416,13 @@ int wallMazeOffset(int right, int left){
 }
 
 void mazeTurnLeft(){
-	set_motor(1, v_go / 2);
-	set_motor(2, v_go);
+	set_motor(1, v_go * 0.6);
+	set_motor(2, v_go * 1.8);
 }
 
 void mazeTurnRight(){
-	set_motor(1, v_go);
-	set_motor(2, v_go / 2);
+	set_motor(1, v_go * 1.8);
+	set_motor(2, v_go * 0.6);
 }
 
 void mazeDeadEnd(){
