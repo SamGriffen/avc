@@ -38,8 +38,8 @@ double kd = 0.45;
 double ki = 0.000;
 
 // For maze
-double maze_kp = 0.15;
-double maze_kd = 0.25;
+double maze_kp = 0.1;
+double maze_kd = 0.2;
 double maze_ki = 0.000;
 
 // Stores total error
@@ -57,6 +57,8 @@ struct timeval start_time;
 FILE *file;
 
 FILE *csv_log;
+
+FILE *mazeLog;
 
 int findMinMax(int scan_row);
 int findCurveError();
@@ -90,7 +92,7 @@ int main(){
 	file = fopen("log.txt", "w");
 
 	//open a file for logging maze readings and actions
-	maze_log = fopen("mazeLog.txt", "w");
+	mazeLog = fopen("mazeLog.txt", "w");
 
 	// Open a csv for logging
 	csv_log = fopen("csv_log.csv", "w");
@@ -101,9 +103,9 @@ int main(){
 	int scan_row = 120;
 
 	try{
-		 //openGate();
+		 openGate();
 
-		stage = 2;
+		// stage = 2;
 
 		//run line
 		while(stage == 0){
@@ -362,13 +364,13 @@ void followLine(int error){
 
 //following maze
 void wallMazeHandler(){
-	v_go = 45;
+	v_go = 40;
 	int left = read_analog(left_ir);
 	int right = read_analog(right_ir);
 	int front = read_analog(mid_ir);
 
-	int irFrontReading = 170;
-	int irSideReading = 280;
+	int irFrontReading = 180;
+	int irSideReading = 180;
 
 	printf("Left: %d Right: %d Front: %d ",left, right, front);
 	fprintf(mazeLog, "Left: %d Right: %d Front: %d ",left, right, front);
@@ -376,7 +378,7 @@ void wallMazeHandler(){
 	//logic for turns. priority order: straight, right, left
 
 	//go forwards until can't
-	if(front < irFrontReading){
+	if(front < irFrontReading || left > 300 || right > 300){
 		wallMazeStraight(right,left);
 		printf("FORWARD ");
 		fprintf(mazeLog, "FORWARD");
@@ -401,6 +403,7 @@ void wallMazeHandler(){
 		fprintf(mazeLog, "There is no room in front or to either side");
 	}
 		printf("\n");
+		fprintf(mazeLog, "\n");
 }
 
 void wallMazeStraight(int right, int left){
@@ -420,13 +423,13 @@ int wallMazeOffset(int right, int left){
 }
 
 void mazeTurnLeft(){
-	set_motor(1, v_go * 0.5);
-	set_motor(2, v_go * 1.5);
+	set_motor(1, v_go * 0.4);
+	set_motor(2, v_go * 0.6);
 }
 
 void mazeTurnRight(){
-	set_motor(1, v_go * 1.5);
-	set_motor(2, v_go * 0.5);
+	set_motor(1, v_go * 0.6);
+	set_motor(2, v_go * 0.4);
 }
 
 // Method that takes a row to scan and returns if there is a correct amount of red pixels to class as red tape
