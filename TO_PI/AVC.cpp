@@ -89,6 +89,9 @@ int main(){
 	// Open a file for logging
 	file = fopen("log.txt", "w");
 
+	//open a file for logging maze readings and actions
+	maze_log = fopen("mazeLog.txt", "w");
+
 	// Open a csv for logging
 	csv_log = fopen("csv_log.csv", "w");
 
@@ -98,9 +101,9 @@ int main(){
 	int scan_row = 120;
 
 	try{
-		 openGate();
+		 //openGate();
 
-		// stage = 2;
+		stage = 2;
 
 		//run line
 		while(stage == 0){
@@ -205,7 +208,6 @@ void tapeMazeHandler(int scan_row){
 	}
 	else{
 		//fprintf(file,"RIGHT ");
-
 		turnRight();
 	}
 	//printf("\n");
@@ -214,15 +216,10 @@ void tapeMazeHandler(int scan_row){
 	if(scanRed(scan_row)){
 		stage++;
 		fprintf(file, "Moving into walled maze\n");
-		//set motor to qadrant 4 speed
-		v_go = 45;
 	}
 }
 
 void turnRight(){
-	// set_motor(1, v_go);
-	// set_motor(2, v_go);
-	// sleep1(0,100000);
 	int row = 20;
 	int threshold = 120;
 	int mid = scanRow(row, threshold);
@@ -236,9 +233,6 @@ void turnRight(){
 }
 
 void turnLeft(){
-	// set_motor(1, v_go);
-	// set_motor(2, v_go);
-	// sleep1(0,100000);
 	int row = 20;
 	int threshold = 120;
 	int mid = scanRow(row, threshold);
@@ -368,35 +362,45 @@ void followLine(int error){
 
 //following maze
 void wallMazeHandler(){
-	v_go = 40;
+	v_go = 45;
 	int left = read_analog(left_ir);
 	int right = read_analog(right_ir);
 	int front = read_analog(mid_ir);
 
-	int irFrontReading = 110;
-	int irSideReading = 200;
+	int irFrontReading = 170;
+	int irSideReading = 280;
 
-	//printf("Left: %d Right: %d Front: %d ",left, right, front);
+	printf("Left: %d Right: %d Front: %d ",left, right, front);
+	fprintf(mazeLog, "Left: %d Right: %d Front: %d ",left, right, front);
 
-	//logic for turns. priority order: right, straight, left
-	if(right < irSideReading){
-		//go right
-		mazeTurnRight();
-		//printf("RIGHT ");
+	//logic for turns. priority order: straight, right, left
 
-	}else if(front < irFrontReading){
-		//go forwards
+	//go forwards until can't
+	if(front < irFrontReading){
 		wallMazeStraight(right,left);
-		//printf("FORWARD ");
+		printf("FORWARD ");
+		fprintf(mazeLog, "FORWARD");
 
+	//go right if room on right
+	}else if(right < irSideReading){
+		mazeTurnRight();
+		printf("RIGHT ");
+		fprintf(mazeLog, "RIGHT");
+
+		//turn left if no room on right and room on left
 	}else if(left < irSideReading){
-		//turn left
 		mazeTurnLeft();
-		//printf("LEFT ");
-
+		printf("LEFT ");
+		fprintf(mazeLog, "LEFT");
 	}
-
-	//printf("\n");
+	//else if it can't go straight or turn in either direction, stop the bot. This should never happen
+	else{
+		set_motor(1, 0);
+		set_motor(2, 0);
+		printf("There is no room in front or to either side");
+		fprintf(mazeLog, "There is no room in front or to either side");
+	}
+		printf("\n");
 }
 
 void wallMazeStraight(int right, int left){
@@ -416,18 +420,13 @@ int wallMazeOffset(int right, int left){
 }
 
 void mazeTurnLeft(){
-	set_motor(1, v_go * 0.6);
-	set_motor(2, v_go * 1.8);
+	set_motor(1, v_go * 0.5);
+	set_motor(2, v_go * 1.5);
 }
 
 void mazeTurnRight(){
-	set_motor(1, v_go * 1.8);
-	set_motor(2, v_go * 0.6);
-}
-
-void mazeDeadEnd(){
-	set_motor(1, v_go);
-	set_motor(2, -1 * v_go);
+	set_motor(1, v_go * 1.5);
+	set_motor(2, v_go * 0.5);
 }
 
 // Method that takes a row to scan and returns if there is a correct amount of red pixels to class as red tape
@@ -449,7 +448,6 @@ bool scanRed(int scan_row){
 			// Increment the number of red pixels
 			numberReds += 1;
 		}
-
 	}
 
 	return (numberReds>redThreshold);
