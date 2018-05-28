@@ -5,10 +5,11 @@
 // pointers to log files
 FILE *file;
 FILE *csv_log;
+FILE *maze_csv;
 
 //********Universal variables (for all quadrants)
 unsigned char v_go = 45; // average speed
-int stage = 0; // what stage the bot is in 
+int stage = 2; // what stage the bot is in
 bool dev = true; //log to text file?
 bool csv_dev = true; //log to csv spreadsheet?
 struct timeval start_time; //start time
@@ -60,9 +61,9 @@ int mid_ir = 1;
 int right_ir = 2;
 
 // PID constants for maze
-double maze_kp = 0.1;
-double maze_kd = 0.2;
-double maze_ki = 0.000;
+double maze_kp = 0.15;
+double maze_kd = 0.3;
+double maze_ki = 0.001;
 
 
 int main(){
@@ -73,11 +74,16 @@ int main(){
 
 	// Open a csv for logging to spreadsheet, and give headers to columns
 	csv_log = fopen("csv_log.csv", "w");
+
+	maze_csv = fopen("maze_csv_log.csv","w");
+
+	fprintf(maze_csv, "Error, Time\n");
+
 	fprintf(csv_log, "Error, Time\n");
 
 	// Define the row to scan on
 	int scan_row = 120;
-	
+
 	//find time of day at program start, for derivative in PID control which needs change over time
 	gettimeofday(&start_time, 0);
 
@@ -136,7 +142,7 @@ void curveyLineHandler(int scan_row){
 
 	// Populate the white array, and get the number of white pixels
 	int numberWhites = scanRow(scan_row, threshold);
-	
+
 	//find new error and log with number of white pixels on line
 	int error = findCurveError();
 	if(dev){
@@ -216,16 +222,17 @@ void followLine(int error){
 	//Add error from previous scan to total error. Find and use the time of day with the total error for calculating differential control
 	total_error += error;
 	gettimeofday(&current_time, 0);
-	last_time = current_time;
 	int errorDifference = (error - prevError)/( (current_time.tv_sec - last_time.tv_sec)*1000000+(current_time.tv_usec-last_time.tv_usec));
+	last_time = current_time;
+
 
 	//find the change from average speed needed to stay centered on line. Use PID and log
-	int dv = (double)error * kp + (double)errorDifference * kd + (double)total_error * ki; 
+	int dv = (double)error * kp + (double)errorDifference * kd + (double)total_error * ki;
 	if(dev){
 		fprintf(file, "P Action: %d  I Action: %d  D Action: %d\n", (int)((double)error * kp),(int)((double)total_error * ki),(int)((double)errorDifference * kd));
-		
+
 	}
-	
+
 	//Find the speed needed for the left and right wheels. Log values
 	int v_left = v_go + dv;
 	int v_right = v_go - dv;
@@ -242,7 +249,7 @@ void followLine(int error){
 	set_motor(2, v_right);
 
 	// Store the current error as the previous error for PID control (note prevError is a field)
-	prevError = error; 
+	prevError = error;
 }
 
 
@@ -250,10 +257,10 @@ void followLine(int error){
 void tapeMazeHandler(int scan_row){
 	// Take a new picture
 	take_picture();
-	
+
 	//set average speed
-	v_go = 45;
-	
+	v_go = 40;
+
 	// Thresholds for what make a pixel white and number of whitepixels in a line
 	int minPix = 10;
 	int threshold = 120;
@@ -277,11 +284,11 @@ void tapeMazeHandler(int scan_row){
 	else if(midWhites > minPix){
 		scanRow(scan_row, threshold);
 		int error = findCurveError();
-		
+
 		//follow the line at a lower speed to increase turning accuracy
-		v_go = 40;
+		v_go = v_go - 10;
 		followLine(error);
-		v_go = 45;
+		v_go = v_go + 10;
 	}
 	// if no line left or straight, turn right
 	else{
@@ -291,6 +298,8 @@ void tapeMazeHandler(int scan_row){
 	// Check if we are looking at a red line, if so, go to the next quadrant
 	if(scanRed(scan_row)){
 		stage++;
+		prevError = 0;
+		total_error = 0;
 		fprintf(file, "Moving into walled maze\n");
 	}
 }
@@ -300,11 +309,11 @@ void tapeMazeHandler(int scan_row){
 int scanCol(int scan_col, int threshold){
 	// Initialize the variable to store number of whites in
 	int numberWhites = 0;
-	
+
 	//go through all pixels. if below threshold its not a white pixel. if above then it is white
 	for(int i = 0; i <240;i++){
 		int pix = get_pixel(i,scan_col,3);
-		
+
 		//if pixel more white than threshold, add One to array and add to count. else add Zero and not to count
 		if(pix > threshold){
 			numberWhites += 1;
@@ -322,7 +331,7 @@ int scanCol(int scan_col, int threshold){
 void turnLeft(){
 	int row = 20;
 	int threshold = 120;
-	
+
 	//while less than 20 white pixels are seen, turn left
 	int mid = scanRow(row, threshold);
 	while(mid < 20){
@@ -339,7 +348,7 @@ void turnLeft(){
 void turnRight(){
 	int row = 20;
 	int threshold = 120;
-	
+
 	//while less than 20 white pixels are seen, turn right
 	int mid = scanRow(row, threshold);
 	while(mid < 20){
@@ -356,19 +365,19 @@ void turnRight(){
 bool scanRed(int scan_row){
 	// Initialize the variable to store number of Reds in
 	int numberReds = 0;
-	
+
 	//error value to ignore close values (to make sure that it is deffinitly red)
 	int colourError = 30;
-	
+
 	//a threshold amount of red pixels it must pass to return true
 	int redThreshold = 50;
-	
+
 	//go through all pixels. if below threshold its not a white pixel. if above then it is white
 	for(int i = 0; i <320;i++){
 		int pixRed = get_pixel(scan_row,i,0);
 		int pixGreen = get_pixel(scan_row,i,1);
 		int pixBlue = get_pixel(scan_row,i,2);
-		
+
 		if((pixRed-colourError > pixGreen) && (pixRed-colourError > pixBlue)){
 			numberReds += 1;
 		}
@@ -380,18 +389,18 @@ bool scanRed(int scan_row){
 
 //****************************Handles walled maze
 void wallMazeHandler(){
-	
+
 	//set average speed
-	v_go = 40;
-	
+	v_go = 35;
+
 	//get readings from the IR sensors and log them
 	int left = read_analog(left_ir);
 	int right = read_analog(right_ir);
 	int front = read_analog(mid_ir);
 	fprintf(file, "Left: %d Right: %d Front: %d ",left, right, front);
-	
+
 	//threshold to tell if bot is close to wall
-	int irFrontReading = 180;
+	int irFrontReading = 220;
 	int irSideReading = 180;
 
 	//***logic for turns. priority order: straight, right, left
@@ -435,18 +444,32 @@ void wallMazeStraight(int right, int left){
 //****************************Find turn needed to stay in center of corridor, with PID
 int wallMazeOffset(int right, int left){
 	int error = (left-right);
-	return ((error*maze_kp)+(error*maze_ki)*(error*maze_kd));
+
+	total_error += error;
+	gettimeofday(&current_time, 0);
+
+	int errorDifference = (error - prevError)/( (current_time.tv_sec - last_time.tv_sec)*1000000+(current_time.tv_usec-last_time.tv_usec));
+
+	last_time = current_time;
+
+	prevError = error;
+
+	// Get the current time and log
+	if(csv_dev){
+	 	long csv_time = (current_time.tv_sec - start_time.tv_sec) * 1000 + (current_time.tv_usec - start_time.tv_usec) / 1000;
+		fprintf(maze_csv, "%d,%ld\n", error, csv_time);
+	}
+
+	return ((error*maze_kp)+(total_error*maze_ki)*(errorDifference*maze_kd));
 }
 
 
 //****************************Change motor speed preportional to v_go to turn left or right
 void mazeTurnLeft(){
-	set_motor(1, v_go * 0.4);
+	set_motor(1, v_go * 0.5);
 	set_motor(2, v_go * 0.6);
 }
 void mazeTurnRight(){
 	set_motor(1, v_go * 0.6);
-	set_motor(2, v_go * 0.4);
+	set_motor(2, v_go * 0.5);
 }
-
-
