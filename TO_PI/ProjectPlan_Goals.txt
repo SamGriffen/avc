@@ -1,0 +1,48 @@
+Week 1
+Mike: Develop software to get the robot moving in a line. Weekly Report  achieved: yes help?: no 
+Sam: Get the chassis made (Prototyped)  achieved: prototype printed help?: no
+Thomas: Develop software to get the robot moving in a line  achieved: yes help?: no
+Dom: Get the chassis made (Prototyped)  achieved: prototype printed help?: no
+Are all relevant code, bot photos and design files on the team Github? yep
+Have you noted which members attended labs and team meetings? all 4 members were at lab, mike, sam, and thomas were at team metting
+Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member? networking code for gate
+
+
+Week 2 
+Mike: Weekly Report, bash script and makefile, help with robot movement code  achieved: yes help?: sam halped with bash file
+Sam: Finishing chassis and drivetrain  achieved: yes help?: no
+Thomas: Have robot moving and start work on image processing  achieved: yep help?: no
+Dom: Finishing sensor and camera mount  achieved: yes help?: no
+Are all relevant code, bot photos and design files on the team Github? yes
+Have you noted which members attended labs and team meetings?
+Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member? nope
+
+
+Week 3 
+Mike: Weekly Report, finishing up quadrant 2 code, working on quadrant 3 code  achieved:  help?: 
+Sam: Adjusting any hardware that needs work, starting on quadrant 4 code (Given that Q2 is done, and Q3 is on the way)  achieved:  help?: 
+Thomas: With Mike, finishing up quadrant 2 code and starting Q3 code  achieved:  help?: 
+Dom: Adjusting any hardware that needs work, starting on quadrant 4 code (Given that Q2 is done, and Q3 is on the way)  achieved:  help?: 
+Are all relevant code, bot photos and design files on the team Github?
+Have you noted which members attended labs and team meetings?
+Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member?
+
+
+Week 4 
+Mike:  achieved:  help?: 
+Sam:  achieved:  help?: 
+Thomas:  achieved:  help?: 
+Dom:  achieved:  help?: 
+Are all relevant code, bot photos and design files on the team Github?
+Have you noted which members attended labs and team meetings?
+Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member?
+
+
+Week 5
+Mike:  achieved:   help?: 
+Sam:  achieved:  help?: 
+Thomas:  achieved:  help?: 
+Dom:  achieved:  help?: 
+Are all relevant code, bot photos and design files on the team Github?
+Have you noted which members attended labs and team meetings?
+Are there any tasks that need to be done for progress to be made that have NOT been assigned to a team member?
